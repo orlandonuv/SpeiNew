@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulação SPEI</title>
+    <style>
+        /* --- ESTILOS GERAIS DA PÁGINA --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0e0e0; /* Fundo diferente para destacar o popup */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* --- BOTÃO SIMULAR SPEI --- */
+        .btn-simular {
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: #007bff; /* Azul padrão */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-simular:hover {
+            background-color: #0056b3;
+            transform: scale(1.02);
+        }
+
+        /* --- ESTRUTURA DO MODAL (POPUP) --- */
+        .modal-overlay {
+            display: none; /* Oculto por padrão */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Permite rolar se a tela for pequena */
+            background-color: rgba(0,0,0,0.6); /* Fundo escuro semitransparente */
+            backdrop-filter: blur(5px); /* Efeito de desfoque no fundo */
+        }
+
+        .modal-content {
+            background-color: #f9f9f9;
+            margin: 5% auto; /* 5% do topo e centralizado */
+            padding: 0;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: fadeIn 0.3s;
+        }
+
+        /* Botão de Fechar (X) */
+        .close-modal {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1010;
+        }
+
+        .close-modal:hover {
+            color: #000;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        /* --- ESTILOS DO CONTEÚDO SPEI (Do código anterior) --- */
+        .spei-container {
+            padding: 40px;
+            color: #333;
+        }
+
+        .field-group { margin-bottom: 25px; }
+        
+        .field-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 8px;
+        }
+
+        .value-box {
+            position: relative;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px 40px 15px 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: border-color 0.2s;
+        }
+
+        .value-box:hover { border-color: #bbb; }
+
+        .value-text {
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: bold; /* Centralizado e Bold conforme pedido */
+            color: #333;
+            text-align: center;
+            width: 100%;
+        }
+
+        .copy-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .copy-btn:hover { background-color: #f0f0f0; }
+        .copy-icon { width: 20px; height: 20px; fill: #777; }
+
+        /* Tooltip Copiado */
+        .tooltip::after {
+            content: "Copiado!";
+            position: absolute;
+            top: -30px;
+            right: 0;
+            background-color: #333;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .tooltip.show::after { opacity: 1; }
+
+        .data-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #555;
+        }
+        .data-footer strong { color: #000; }
+
+        /* Instruções */
+        .instructions-section { padding-top: 30px; }
+        h2.title { color: #d32f2f; font-size: 18px; margin-bottom: 20px; }
+        ol { margin-left: 20px; font-size: 14px; line-height: 1.6; color: #444; }
+        ol li { margin-bottom: 8px; }
+        .sub-list { list-style-type: lower-alpha; margin-top: 5px; margin-bottom: 10px; }
+
+        /* Bancos */
+        .bank-helper { text-align: center; color: #666; font-size: 14px; margin: 30px 0 20px 0; }
+        .bank-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        .bank-item {
+            border: 1px solid #eee; border-radius: 4px; width: 140px; height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase;
+            background-color: #fff; transition: all 0.2s;
+        }
+        .bank-item:hover { border-color: #ccc; color: #555; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+    <button class="btn-simular" onclick="openModal()">Simular SPEI</button>
+
+    <div id="speiModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            
+            <div class="spei-container">
+                
+                <div class="field-group">
+                    <label class="field-label">CLABE Account</label>
+                    <div class="value-box">
+                        <span class="value-text" id="clabe">646180258100003949</span>
+                        <button class="copy-btn tooltip" onclick="copyToClipboard('clabe', this)">
+                            <svg class="copy-icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Unique Reference</label>
+                    <div class="value-box">
+                        <span class="value-text" id="ref">2610000000047432</span>
+                        <button class="copy-btn tooltip" onclick="copyToClipboard('ref', this)">
+                            <svg class="copy-icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="data-footer">
+                    <span>Expiry date: <strong>06/05/2024, 09:39 AM</strong></span>
+                    <span>Amount: <strong>1.00 MXN</strong></span>
+                </div>
+
+                <div class="instructions-section">
+                    <h2 class="title">How to perform my deposit?</h2>
+                    <ol>
+                        <li>Access your online banking via your bank portal</li>
+                        <li>Select the Transfer option</li>
+                        <li>
+                            Input the requested data to perform your SPEI transfer:
+                            <ol class="sub-list">
+                                <li>Account type: <strong>CLABE</strong></li>
+                                <li>Bank: <strong>STP</strong> or <strong>STPMEX</strong></li>
+                                <li>Beneficiary Name or Account owner name: <strong>Your full name</strong></li>
+                                <li>In the Concept or Motive field: input the Unique Reference exactly as shown above</li>
+                                <li>In the Amount field: input the amount exactly as shown above</li>
+                            </ol>
+                        </li>
+                        <li>Confirm the SPEI transfer and the amount will be reflected immediately in your account</li>
+                    </ol>
+
+                    <p class="bank-helper">Click on your bank icon below to perform the SPEI deposit</p>
+
+                    <div class="bank-grid">
+                        <div class="bank-item">HSBC</div>
+                        <div class="bank-item">BBVA</div>
+                        <div class="bank-item">CITIBANAMEX</div>
+                        <div class="bank-item">SANTANDER</div>
+                        <div class="bank-item">SCOTIABANK</div>
+                        <div class="bank-item">BANORTE</div>
+                        <div class="bank-item">BANREGIO</div>
+                        <div class="bank-item">BANCO DEL BAJIO</div>
+                        <div class="bank-item">BANCO AZTECA</div>
+                        <div class="bank-item">BANCOPPEL</div>
+                        <div class="bank-item">INBURSA</div>
+                    </div>
+                </div>
+            </div>
+            </div>
+    </div>
+
+    <script>
+        // Funções do Modal
+        function openModal() {
+            document.getElementById('speiModal').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Impede rolagem da página de fundo
+        }
+
+        function closeModal() {
+            document.getElementById('speiModal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restaura rolagem
+        }
+
+        // Fechar se clicar fora do conteúdo
+        window.onclick = function(event) {
+            const modal = document.getElementById('speiModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // Função de Copiar
+        function copyToClipboard(id, btn) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                btn.classList.add('show');
+                setTimeout(() => btn.classList.remove('show'), 2000);
+            });
+        }
+    </script>
+</body>
+</html>
